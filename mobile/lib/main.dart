@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('❌ Error de conexión'));
+            return const Center(child: Text('❌ Error de conexión'));
           } else {
             return ListView.builder(
               itemCount: snapshot.data!.length,

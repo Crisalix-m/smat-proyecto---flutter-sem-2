@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/estacion.dart';
-
+import 'auth_service.dart'; 
 class ApiService {
-  // Nota: 10.0.2.2 es el localhost para el emulador Android.
-  // Si usa Linux Desktop o Web, use 'localhost'.
-  final String baseUrl = "http://127.0.0.1:8000";
+  // 10.0.2.2 es el localhost para el emulador Android.
+  // Si usas un dispositivo físico o Linux/Web, usa tu IP o 'localhost'.
+  final String baseUrl = "http://10.0.2.2:8000";
 
+  // Función para obtener la lista de estaciones
   Future<List<Estacion>> fetchEstaciones() async {
     final response = await http.get(Uri.parse('$baseUrl/estaciones/'));
 
@@ -16,5 +17,24 @@ class ApiService {
     } else {
       throw Exception('Falla al conectar con el servidor SMAT');
     }
+  }
+
+  // Función para crear una estación usando el Token de autenticación
+  Future<bool> crearEstacion(String nombre, String ubicacion) async {
+    final token = await AuthService().getToken();
+    
+    final response = await http.post(
+      Uri.parse('$baseUrl/estaciones/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'nombre': nombre,
+        'ubicacion': ubicacion,
+      }),
+    );
+
+    return response.statusCode == 200 || response.statusCode == 201;
   }
 }
