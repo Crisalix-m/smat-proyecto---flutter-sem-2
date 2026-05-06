@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'services/api_service.dart';
-import 'services/auth_service.dart'; // Importante para el token
+import 'services/auth_service.dart'; 
 import 'models/estacion.dart';
-import 'screens/login_screen.dart'; // Asegúrate de que esta ruta sea correcta
-import 'screens/add_estacion_screen.dart'; // Para el botón de agregar si lo necesitas
+import 'screens/login_screen.dart'; 
+import 'screens/add_estacion.dart';
 
 void main() => runApp(const SMATApp());
 
@@ -13,22 +13,21 @@ class SMATApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SMAT - Monitoreo',
+      title: 'SMAT - Monitoreo Móvil',
       debugShowCheckedModeBanner: false,
-      // Usamos FutureBuilder para decidir la pantalla de inicio
+      // EL RETO: FutureBuilder decide si mostrar Login o HomePage al arrancar
       home: FutureBuilder<String?>(
         future: AuthService().getToken(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
-          // Si hay token, va a la HomePage, si no, al Login
+          
+          // Lógica de Redirección Automática
           if (snapshot.hasData && snapshot.data != null) {
-            return const HomePage();
+            return const HomePage(); // Si hay token, entra directo
           } else {
-            return const LoginScreen();
+            return const LoginScreen(); // Si no hay, pide login
           }
         },
       ),
@@ -57,7 +56,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // Lógica para cerrar sesión
+  // EL RETO: Función para borrar el token y salir al Login
   void _logout() async {
     await AuthService().logout();
     if (!mounted) return;
@@ -74,7 +73,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('SMAT - Monitoreo Móvil'),
         actions: [
-          // Botón de Logout añadido
+          // EL RETO: Botón de Cerrar Sesión en la barra superior
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: _logout,
@@ -104,9 +103,30 @@ class _HomePageState extends State<HomePage> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _refresh,
-        child: const Icon(Icons.refresh),
+      // Botones flotantes: Refrescar y Agregar Nueva Estación
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: "btnRefresh",
+            onPressed: _refresh,
+            mini: true,
+            child: const Icon(Icons.refresh),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            heroTag: "btnAdd",
+            backgroundColor: Colors.green,
+            onPressed: () async {
+              final bool? result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddEstacionScreen()),
+              );
+              if (result == true) _refresh(); // Auto-refresh al volver
+            },
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }
